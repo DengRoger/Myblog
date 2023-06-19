@@ -9,7 +9,3 @@ tags:
 ---
 
 [CSES ](https://github.com/DengRoger/CSES)
-
-```bash
-test
-```
