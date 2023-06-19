@@ -26,7 +26,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /home/roger/myblog
+            cd /home/roger/Myblog
             git pull
             hexo generate
             sudo rm -r /var/www/blog/*
