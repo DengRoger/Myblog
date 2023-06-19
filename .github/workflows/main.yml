@@ -1,0 +1,33 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt-get install -y ssh rsync
+
+      # deploy code to server with ssh , HOST , KEY , USERNAME , PORT with secret
+      - name: Post Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          key: ${{ secrets.KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/roger/myblog
+            git pull
+            hexo generate
+            sudo rm -r /var/www/blog/*
+            sudo cp -r /home/roger/Myblog/public/* /var/www/blog/
