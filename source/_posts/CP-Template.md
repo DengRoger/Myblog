@@ -7,52 +7,13 @@ tags:
     - C++
     - CP
 ---
-
 # CP Template
-<!-- more -->
 
-- [IO , PBDS](#IO,PBDS)
-- [KMP](#KMP)
-- [DAG](#DAG)
-- [segmentTree](#SegmentTree)
-- [ConvexHull](#ConvexHull)
-- [MinSwaps](#MinSwaps)
-- [Eratosthenes](#Eratosthenes)
-- [3DLCS](#3DLCS)
-- [EditDistance](#EditDistance)
-- [LCS](#LCS)
-- [LIS](#LIS)
-- [Dijkstra](#Dijkstra)
-- [*A](#*A)
-- [Maximum s-t Flow](#MaximumS-tFlow)
-- [BCC](#BCC)
-- [LCA](#LCA)
-- [Tarjan](#Tarjan)
-- [BIT](#BIT)
-- [擴展歐幾里德](#擴展歐幾里德)
-- [Bellman Ford](#BellmanFord)
-- [Hash](#hash)
-- [ODT](#ODT) (又名科朵莉樹)
-- [李超線段數](#李超線段數) 
-- [AC自動機](#AC自動機)
-
-
-## 
-
-        - 重構大綱
-            -  LCS , LIS , EditDistance , Dijkstra , bellman ford 、 KMP 
-                等算法屬於簡單DP不該存於模板內
-            - 基礎IO背起來
-            - minSwaps O(n) 版本基本上完全用不到 
-            - RMQ有莫隊算法的版本 
-            - ODT、李超、AC automata、*A 都用不太到
-            - segmentTree(包括 lazy tag 和 persistent) 、 Hash 、 Eratosthenes 
-                等級的code需要立即寫出來 也不該存於模板中
-            - BCC LCA 都可以用 Tarjan 改
-            - Maximum Flow 準備一個 Dinic 即可
-            - 學一下 NIM 
-            - 3D LCS的時間複雜度須為 O(mn)
-            - 新增條目 LCIS 
+## compile
+```bash=
+#!/bin/bash
+g++ $1 && ./a.out < ipt.in > opt.out
+```
 
 ## IO,PBDS 
 ```cpp=
@@ -60,31 +21,25 @@ tags:
 #pragma GCC optimize("O3","unroll-loops")
 #define IO cin.tie(0), ios::sync_with_stdio(0)
 #define All(x) x.begin(), x.end()
-#define sz(x) (int)(x).size()
 #define sort_unique(x) sort(All(x)); x.erase(unique(All(x)), x.end());
-#define eb emplace_back 
-#define pb push_back   
 #define ne nth_element  
-#define lb lower_bound  
-#define ub upper_bound  
 using namespace std;
-typedef long long ll;
-typedef pair<ll, ll> pii;
-typedef vector<ll>   vl;
-
-// #include <ext/pb_ds/assoc_container.hpp>
-// #include <ext/pb_ds/tree_policy.hpp>
-// using namespace __gnu_pbds;
-// #define multiset tree<ll, null_type,less_equal<ll>, rb_tree_tag,tree_order_statistics_node_update>
-/**
+#include <bits/extc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+#define multiset tree<ll, null_type,less_equal<ll>, rb_tree_tag,tree_order_statistics_node_update>
 order_of_key(k) : nums strictly smaller than k
 find_by_order(k): index from 0
-**/
-const int N = 50+5;
-const ll INF = 1e9;
-const int mod = 1e9+2e5+7;
-const ll MXP = 1e10;
-const int dir[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+/*
+| Tag                  | push  | pop    | join | modify |
+| paring_heap_tag      | O(1)  | O(lgN) | O(1) | O(lgN) |
+| thin_heap_tag        | O(lgN)| O(lgN) |  慢  |   慢    |
+| binomial_heap_tag    | O(1)  | O(lgN) | O(1) | O(lgN) |
+| rc_binomial_heap_tag | O(1)  | O(lgN) | O(1) | O(lgN) |
+| binary_heap_tag      | O(1)  | O(lgN) |  慢  | O(lgN) | 
+*/
+typedef __gnu_pbds::priority_queue<pair<int,ii>,less<pair<int,ii>>,rc_binomial_heap_tag> heap;
 ```
 
 ## KMP 
@@ -144,15 +99,12 @@ void updateNode(int idx , int val , int l , int r , int node){
 }
 ```
 
-## SegmentTree (lazy tag)
+## SegmentTreeLazy
 ```cpp=
 #define Ls(x) x << 1
 #define Rs(x) x << 1 | 1
-
 int N = 1e5+5;
 vector<int> segTree(4*N), lazy(4*N) , arr(N);
-// segment tree with lazy propagation 
-
 void build(int l, int r, int idx = 1){
     if(l == r){
         segTree[idx] = arr[l];
@@ -166,40 +118,29 @@ void build(int l, int r, int idx = 1){
 
 void pushDown(int l, int r, int idx){
     if(lazy[idx] == 0) return;
-    // adding lazy[idx] to each element in range [l, r]
     segTree[idx] += (r-l+1)*lazy[idx]; 
-    // set lazy for children
     if(l != r) lazy[Ls(idx)] += lazy[idx],lazy[Rs(idx)] += lazy[idx];
-    // clear lazy[idx]
     lazy[idx] = 0; 
 }
 
 void update(int l, int r, int ql, int qr, int val, int idx = 1){
-    // l : left index of current range
-    // r : right index of current range
-    // ql : left index of query range
-    // qr : right index of query range
-    // val : value to be added to each element in range [ql, qr]
-    // idx : current index of segment tree
-    pushDown(l, r, idx); // push down lazy value to children
-    if(l > qr || r < ql) return; // out of range
-    // completely in range case
-    // if current range is not completely in range, we need to update its children
+    pushDown(l, r, idx); 
+    if(l > qr || r < ql) return; 
     if(l >= ql && r <= qr){
         segTree[idx] += (r-l+1)*val;
         if(l != r) lazy[Ls(idx)] += val, lazy[Rs(idx)] += val;
         return;
     }
     int mid = (l+r) >> 1;
-    update(l, mid, ql, qr, val, Ls(idx)); // update left child
-    update(mid+1, r, ql, qr, val, Rs(idx)); // update right child
+    update(l, mid, ql, qr, val, Ls(idx));
+    update(mid+1, r, ql, qr, val, Rs(idx));
     segTree[idx] = segTree[Ls(idx)]+ segTree[Rs(idx)];
 }
 
 int query(int l, int r, int ql, int qr, int idx = 1){
-    pushDown(l, r, idx); // push down lazy value to children
-    if(l > qr || r < ql) return 0; // out of range 
-    if(l >= ql && r <= qr) return segTree[idx]; // completely in range
+    pushDown(l, r, idx); 
+    if(l > qr || r < ql) return 0;
+    if(l >= ql && r <= qr) return segTree[idx]; 
     int mid = (l+r) >> 1, sum = 0; 
     if(ql <= mid) sum += query(l, mid, ql, qr, Ls(idx));
     if(qr > mid) sum += query(mid+1, r, ql, qr, Rs(idx)); 
@@ -207,7 +148,7 @@ int query(int l, int r, int ql, int qr, int idx = 1){
 }
 ```
 
-## ConvexHull
+## ConvexHull *** 
 ```cpp=
 void Dhull(vector<pii> points , vector<pii> &hull){
     hull.push_back(points[0]) , hull.push_back(points[1]);
@@ -261,22 +202,7 @@ int minSwaps(vector<int> &arr, int n) {
 } 
 ```
 
-## Eratosthenes
-```cpp=
-auto eratosthenes(int upperbound) {
-    vector<bool> flag(upperbound + 1, true);
-    flag[0] = flag[1] = false;
-    for (int i = 2; i * i <= upperbound; ++i) {
-        if (flag[i]) {
-            for (int j = i * i; j <= upperbound; j += i)
-                flag[j] = false;
-        }
-    }	
-    return flag;
-}
-```
-
-## 3DLCS 
+## 3DLCS *** (有加速版本)
 (此條目需更新)
 ```cpp=
 #include <bits/stdc++.h>
@@ -303,35 +229,338 @@ int lcsOf3( string X, string Y, string Z, int m, int n, int o){
 ```
 ## EditDistance 
 ```cpp=
-int EditDistance2(string s1 , string s2){ // space complexity : O(n)
-    vector<int> EditDistance(s2.size()+1, 0);
-    for(int i = 0 ; i <= s2.size() ; i++) EditDistance[i] = i;
-    for(int i = 1 ; i <= s1.size() ; i++){
-        int prev = EditDistance[0];
-        EditDistance[0] = i;
-        for(int j = 1 ; j <= s2.size() ; j++){
-            int temp = EditDistance[j];
-            if(s1[i-1] == s2[j-1]) EditDistance[j] = prev;
-            else EditDistance[j] = min(prev , min(EditDistance[j] , EditDistance[j-1])) + 1;
-            prev = temp;
+// 問從 src 到 dst 的最小 edit distance
+// ins 插入一個字元的成本
+// del 刪除一個字元的成本
+// sst 替換一個字元的成本
+ll edd(string& src, string& dst, ll ins, ll del, ll sst) {
+    ll dp[src.size() + 1][dst.size() + 1]; // 不 用 初 始 化
+    for (int i = 0; i <= src.size(); i++) {
+        for (int j = 0; j <= dst.size(); j++) {
+            if (i == 0) dp[i][j] = ins * j;
+            else if (j == 0) dp[i][j] = del * i;
+            else if (src[i - 1] == dst[j - 1])
+                dp[i][j] = dp[i - 1][j - 1];
+            else
+                dp[i][j] = min(dp[i][j - 1] + ins, 
+                               min(dp[i - 1][j] + del, 
+                                   dp[i - 1][j - 1] + sst));
         }
     }
-    return EditDistance[s2.size()];
+    return dp[src.size()][dst.size()];
 }
 ```
 
-## LCS 
+## dinc LCS
+```cpp=
+若一樣：左上+1
+else max(左,上)
+```
 
-## LIS 
+## LPS
+```cpp=
+int lps(string s){
+  int N=2*s.size()+1;
+  vector<int> dp(N);
+  string s2="*";
+  for(auto&c:s){
+    s2.push_back(c);
+    s2.push_back('*');
+  }
+  int C=0,R=0;
+  for(int i = 1;i < N;i++){
+    if(i>R)C=R=i;
+    else{
+      int mirrorI=C-(i-C);
+      dp[i]=min(dp[mirrorI],R-i);
+    }
+    int j=dp[i]+1;
+    while((i-j>=0)&&(i+j<N)&&(s2[i-j]==s2[i+j]))j++;
+    dp[i]=j-1;
+    if(i+dp[i]>R){
+      C=i;
+      R=i+dp[i];
+    }
+  }
+  return *max_element(dp.begin(),dp.end());
+}
 
-## Dijkstra 
+string lps(string s){
+  int N=2*s.size()+1;
+  vector<int> dp(N);
+  string s2="*";
+  for(auto&c:s){
+    s2.push_back(c);
+    s2.push_back('*');
+  }
+  int C=0,R=0;
+  for(int i = 1;i < N;i++){
+    if(i>R)C=R=i;
+    else{
+      int mirrorI=C-(i-C);
+      dp[i]=min(dp[mirrorI],R-i);
+    }
+    int j=dp[i]+1;
+    while((i-j>=0)&&(i+j<N)&&(s2[i-j]==s2[i+j]))j++;
+    dp[i]=j-1;
+    if(i+dp[i]>R){
+      C=i;
+      R=i+dp[i];
+    }
+  }
+  auto it=max_element(dp.begin(),dp.end());
+  int maxLen=*it;
+  int index=it-dp.begin();
+  return s.substr((index-maxLen)/2,maxLen);
+}
+```
 
-## *A 
+## LIS
+```cpp=
+void LIS(vector<int> &arr){
+    vector<int> lis;
+    for(int i = 0; i < arr.size(); i++){
+        auto it = lower_bound(lis.begin(), lis.end(), arr[i]);
+        if(it == lis.end()) lis.push_back(arr[i]);
+        else *it = arr[i];
+    }
+    cout << lis.size() << endl;
+}
+```
 
-## MaximumS-tFlow
+## LCS
+```cpp=
+// LCS with O(nlogn) time complexity
+int LCS(string text1, string text2) {
+    // LCS -> LIS
+    vector<int> alph[128];  // record text1's alphabet in text2 pos.
+    int maps[128];
+    memset(maps, 0, sizeof(maps));
+    for(int i = 0; i < text1.size(); i++) maps[text1[i]] = 1;
+    for(int j = text2.size(); j > -1; j--)
+        if(maps[text2[j]] == 1) alph[text2[j]].push_back(j);
+    vector<int> nums;
+    for(int i = 0; i < text1.size(); i++) {
+        if(alph[text1[i]].size() > 0)
+            nums.insert(nums.end(), alph[text1[i]].begin(), alph[text1[i]].end());
+    }
+    // get LIS's length by monotone stack method : O(nlogn)
+    vector<int> pool;
+    for(int i = 0; i < nums.size(); i++) {
+        if(i == 0 || nums[i] > pool.back() ) {
+            pool.push_back(nums[i]);
+        } else if(nums[i] == pool.back()) {
+            continue;
+        } else {
+            int s = 0, e = pool.size() - 1, mid = 0;
+            while(s < e) {
+                mid = (s + e)/2;
+                if(pool[mid] < nums[i]) s = mid + 1;
+                else e = mid;
+            }
+            pool[e] = nums[i];
+        }
+    }
+    return pool.size();
+}
+```
+## Kurskal
+```cpp=
+struct Edge {
+    int src;
+    int dest;
+    int weight; 
+    Edge(int s, int d, int w) : src(s), dest(d), weight(w) {}
+};
+int findParent(const vector<int>& parent, int i) {
+    if (parent[i] == i) return i;
+    return findParent(parent, parent[i]);
+}
+vector<Edge> kruskalMST(const vector<vector<int>>& adjacencyMatrix) {
+    int size = adjacencyMatrix.size();
+    vector<Edge> mst, edges;
+    for (int i = 0; i < size; ++i) {
+        for (int j = i + 1; j < size; ++j) {
+            if (adjacencyMatrix[i][j] > 0) edges.push_back(Edge(i, j, adjacencyMatrix[i][j]));
+        }
+    }
+    sort(edges.begin(), edges.end(), [](const Edge& e1, const Edge& e2) {
+        return e1.weight < e2.weight;
+    });
+    vector<int> parent(size);
+    for (int i = 0; i < size; ++i) parent[i] = i;
+    int count = 0; 
+    for (const Edge& edge : edges) {
+        if (count == size - 1) break;
+        int srcParent = findParent(parent, edge.src) , destParent = findParent(parent, edge.dest);
+        if (srcParent != destParent) {
+            mst.push_back(edge);
+            ++count;
+            parent[srcParent] = destParent;
+        }
+    }
+    return mst;
+}
+```
 
-## BCC
+## BooleanForward
+```cpp=
+bool booleanForward(string s, vector<string> &dict) {
+    int n = s.size();
+    vector<bool> dp(n + 1, false);
+    dp[0] = true;
+    for (int i = 1; i <= n; i++) {
+        for (auto word : dict) {
+            int len = word.size();
+            if (i >= len && s.substr(i - len, len) == word) {
+                dp[i] = dp[i] || dp[i - len];
+            }
+        }
+    }
+    return dp[n];
+}
+```
 
-## LCA
+## SPFA 
+https://www.youtube.com/watch?v=Hy6IaVFFeqI
+https://hackmd.io/@andy010629/Bellman-Ford
 
-## Tarjan
+
+## qpw
+```cpp=
+ll qpw(ll base, ll exponent) {
+    ll result = 1;
+    while (exponent != 0) {
+        if (exponent % 2 == 1)result *= base;
+        base *= base;
+        exponent /= 2;
+    }
+    return result;
+}
+
+long long POW(long long a, long long b) { 
+    if (b == 0) return 1; 
+    long long k = POW(a,b/2); 
+    if (b % 2)return k * k * a; 
+    return k * k;
+}
+```
+
+## 轉換
+```cpp=
+stoi
+stoll
+to_string
+```
+
+## AC自動機
+```cpp=
+struct _AC{
+	_AC *child[26];
+	_AC *Fail;
+	vector<pair<int,int>> out;
+	_AC(){
+		Fail = NULL;
+		memset(child,0,sizeof(child));
+	}
+}*root;
+void Insert_AC(string s){
+	int n;
+	_AC *p = root;
+	for(auto&k:s){
+		n = k - 'a';
+		if(!p->child[n]) p->child[n] = new _AC();
+		p = p->child[n];
+	}
+	p->out.push_back({s.size(),0});
+}
+void Construct_AC(){
+	queue<_AC*> Q;
+	for(int k=0;k<26;k++){
+		if(root->child[k]){
+			root->child[k]->Fail = root;
+			Q.push(root->child[k]);
+		}
+		else root->child[k] = root;
+	}
+	_AC *p;
+	while(!Q.empty()){
+		p = Q.front();
+		Q.pop();
+		for(int k=0;k<26;k++){
+			if(!p->child[k])p->child[k] = p->Fail->child[k];
+			else {
+				p->child[k]->Fail = p->Fail->child[k];
+				for(auto&i:p->Fail->child[k]->out)p->child[k]->out.push_back({i.first,1});
+				Q.push(p->child[k]);
+			}
+		}
+	}
+}
+void Match_AC(string t){
+	int n;
+	_AC *p = root;
+	for(int k=0;k<t.size();k++){
+		n = t[k] - 'a';
+		p = p->child[n];
+		_AC *fail = p;
+		while(fail != root && fail->out.size()){
+			for(auto&i:fail->out)if(!i.second||fail->Fail->out.size())cout<<t.substr(k-i.first+1,i.first)<<'\n';
+			fail->out.clear();
+			fail->Fail->out.clear();
+			fail = fail->Fail;
+		}
+	}
+}
+
+int main(){
+	int n,m;string p,t;cin>>n;
+	while(cin>>n>>m){
+		root = new _AC();
+		while(n--){
+			cin>>p;
+			Insert_AC(p);
+		}
+		Construct_AC();
+		cin>>n>>m;
+		cin>>t;
+		Match_AC(t);
+	}
+}
+```
+
+## 離散化
+```cpp=
+vector<int> v(1000),b(1000);
+for(auto&n:v)cin>>n;
+sort(v.begin(),v.end());
+auto len = unique(v.begin(),v.end())-v.begin();
+v.resize(len);
+for(int i = 0; i < v.size(); i++){
+    b[i] = lower_bound(v.begin(),v.end(),v[i])-v.begin();
+}
+```
+
+## 鞋帶
+```cpp=
+vector<pair<int,int>> v(n);
+for(auto&n:v) cin >> n.first >> n.second;
+int area = 0;
+for(int i = 0; i < v.size(); i++){
+    area += v[i].first * v[(i+1)%v.size()].second;
+    area -= v[i].second * v[(i+1)%v.size()].first;
+}
+cout << abs(area)/2 << endl;
+```
+
+## 最小覆蓋圓 
+
+## 最近點對
+
+## else 
+``` txt 
+https://blog.csdn.net/weixin_42887391/article/details/84638883
+https://peienwu.com/pair/
+最近點對 
+
+```
