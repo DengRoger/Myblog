@@ -8,6 +8,7 @@ tags:
     - CP
 ---
 # CP Template
+<!-- more -->
 
 ## compile
 ```bash=
