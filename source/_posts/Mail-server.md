@@ -3,7 +3,9 @@ title: Mail server
 date: 2023-06-19 09:16:17
 tags:
 ---
+
 <!-- more -->
+
 # Instailation
 ```bash
 sudo apt-get install opendkim opendkim-tools postfix
