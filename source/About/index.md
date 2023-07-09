@@ -29,8 +29,10 @@ comments: true
 
 ## Awards
 - 
+    - 9-th place(silver) 2023 National Contest for Private Universities
     - 9-th place(silver) 2022 National Contest for Private Universities
     - 4-th place(copper) 2021 National Contest for Private Universities
+    - 1st place , 2023 Ming Chuan University Programming Contest
     - 1st place , 2022 Ming Chuan University Programming Contest
     - 1st place , 2021 Ming Chuan University Programming Contest
 
