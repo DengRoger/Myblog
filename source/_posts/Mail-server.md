@@ -320,3 +320,66 @@ smtpd_recipient_restrictions = check_policy_service unix:postgrey/socket
 systemctl enable postgrey
 systemctl restart postgrey
 ```
+
+#合併並確認 main.cf
+```bash
+smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
+biff = no
+
+# appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+readme_directory = no
+
+# See http://www.postfix.org/COMPATIBILITY_README.html -- default to 2 on
+# fresh installs.
+compatibility_level = 2
+broken_sasl_auth_clients = yes
+smtpd_sasl_type = dovecot
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_tls_security_options = $smtpd_sasl_security_options
+smtpd_sasl_path = private/auth
+
+# TLS parameters
+#ssl_cert = </etc/dovecot/private/dovecot.pem
+#ssl_key = </etc/dovecot/private/dovecot.key
+smtp_use_tls = yes
+smtpd_use_tls = yes
+smtp_tls_note_starttls_offer = yes
+smtpd_tls_cert_file=/etc/ssl/mail/public_cert.pem
+smtpd_tls_key_file=/etc/ssl/mail/private_key.pem
+smtpd_tls_security_level=may
+smtpd_tls_loglevel = 1
+
+smtp_tls_CApath=/etc/ssl/certs
+smtp_tls_security_level=may
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+
+mydomain = rogerdeng.net
+myhostname = mail.rogerdeng.net
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = $mydomain
+mydestination = mail.rogerdeng.net, rogerdeng.net, localhost.localdomain, localhost
+relayhost =
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = all
+mynetworks = 10.1.1.0/24, 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+
+# Milter configuration
+non_smtpd_milters = $smtpd_milters
+
+smtpd_sender_login_maps = regexp:/etc/postfix/sender_login_map
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated reject_unauth_destination
+smtpd_sender_restrictions = reject_non_fqdn_sender reject_unknown_sender_domain reject_sender_login_mismatch
+milter_default_action = accept
+milter_protocol = 6
+smtpd_milters = inet:127.0.0.1:8893 local:opendkim/opendkim.sock
+```
