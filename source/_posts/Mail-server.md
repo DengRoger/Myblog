@@ -150,8 +150,6 @@ sudo vim /etc/bind/foward.rogerdeng.net # 寫入 DKIM
 # @       IN	  TXT	"v=spf1 a mx ipv4:<IP> -all"
 # mail    IN	  TXT	"v=spf1 a mx ipv4:<IP> -all"
 # update u're serial
-sudo vim /etc/bind/internal.rogerdeng.net
-# setup dns record
 sudo service bind9 reload
 ```
 
