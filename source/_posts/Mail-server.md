@@ -2,6 +2,16 @@
 title: Mail server
 date: 2023-06-19 09:16:17
 tags:
+    - Mail
+    - Postfix
+    - Dovecot
+    - OpenDKIM
+    - SPF
+    - DKIM
+    - DMARC
+    - Greylisting
+categories:
+    - System
 ---
 
 # Setup Mail Server
