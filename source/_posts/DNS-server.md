@@ -70,3 +70,33 @@ view "external-view" {
     - `rogerdeng.net. IN DS 10246 8 2 FB2C50A9AB6561B75D7033DDA209E2C8BBEF7138274F325691DAD456582EAAF8`
     - ![](https://hackmd.io/_uploads/HJciLTvU3.png)
 
+## setup Auto DNSSEC
+- Edit `/etc/bind/named.conf.options`
+```
+view "internal-view" {
+    match-clients { internal; };
+    zone "rogerdeng.net" {
+        type master;
+	key-directory "/etc/bind/keys";
+	auto-dnssec maintain;
+	inline-signing yes;
+        file "/etc/bind/internal.rogerdeng.net.db";
+    };
+};
+
+view "external-view" {
+    match-clients { external; };
+    zone "rogerdeng.net" {
+        type master;
+	key-directory "/etc/bind/keys";
+	auto-dnssec maintain;
+	inline-signing yes;
+	file "/etc/bind/forward.rogerdeng.net.db";
+    };
+};
+```
+- `rndc signing -list rogerdeng.net`
+- `sudo systemctl restart bind9`
+
+## Check DNSSEC
+- `dig +dnssec <DOMAIN> @<DNS_SERVER>`
