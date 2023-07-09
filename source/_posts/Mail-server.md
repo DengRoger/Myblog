@@ -61,6 +61,48 @@ unix_listener auth-userdb {
 unix_listener /var/spool/postfix/private/auth {
     mode = 0666
 }
+
+ssl = yes
+
+ssl_cert = <證書位置
+ssl_key = <私鑰位置
+```
+
+# 測試 SMTP IMAP
+
+## SMTP
+```bash
+# using base64 encode account and passwd 
+echo -n "<account or passwd>" | base64
+
+telnet DomainName 25
+ehlo DomainName
+auth login
+<account> # base64 encode
+<passwd> # base64 encode
+# 若成功會出現 235 Authentication successful
+# 若失敗會出現 535 5.7.8 Error: authentication failed: authentication failure
+
+# 寄信
+mail from: <account>
+rcpt to: <account>
+data
+subject: test
+test
+.
+quit
+```
+
+## IMAP
+```bash
+telnet DomainName 143
+A01 LOGIN <account> <passwd>
+# 若成功會出現 OK LOGIN Ok.
+A02 LIST "" *
+A03 SELECT INBOX
+A04 SEARCH ALL
+A05 FETCH 32 FULL
+A06 LOGOUT
 ```
 
 # 簽署 DKIM
@@ -192,3 +234,89 @@ sudo systemctl enable opendkim
 sudo systemctl enable postfix
 ```
 
+# 防止冒名發信
+- 安裝資料庫
+```bash
+sudo apt-get install mariadb-server
+sudo mysql_secure_installation
+```
+
+- 編輯 /etc/postfix/main.cf
+```bash
+non_smtpd_milters = $smtpd_milters
+
+smtpd_sender_login_maps = regexp:/etc/postfix/sender_login_map
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated reject_unauth_destination
+smtpd_sender_restrictions = reject_non_fqdn_sender reject_unknown_sender_domain reject_sender_login_mismatch
+```
+
+- 編輯 /etc/postfix/sender_login_map
+```bash
+/^(.+)@(mail\.)?rogerdeng\.net$/ $1
+```
+
+- 編輯 /etc/postfix/sender_check
+```bash
+<>      REJECT  null users are not allowed
+```
+
+# SPF、DKIM 和 DMARC 的郵件輸入檢查
+- 安裝 opendmarc
+```bash
+sudo apt-get install opendmarc
+```
+
+- 編輯 /etc/postfix/main.cf
+```bash
+milter_default_action = accept
+milter_protocol = 6
+smtpd_milters = inet:127.0.0.1:8893 local:opendkim/opendkim.sock
+```
+- 編輯 /etc/opendkim.conf
+```bash
+UserID opendmarc
+
+Socket inet:8893@localhost
+SoftwareHeader true
+SPFIgnoreResults true
+SPFSelfValidate true
+Syslog true
+UMask 777
+UserID opendmarc:mail
+TrustedAuthservIDs mail.rogerdeng.net
+RejectFailures true
+RequiredHeaders false
+IgnoreAuthenticatedClients true
+```
+
+- 加入開機啟動
+```bash
+systemctl enable opendmarc
+systemctl start opendmarc
+```
+
+# 設定 Greylisting 
+- 安裝
+```bash
+sudo apt-get install postgrey
+```
+- 編輯 /etc/sysconfig/postgrey
+```bash
+POSTGREY_OPTS="--delay=30"
+```
+
+- 新增白名單(self) 編輯 /etc/postfix/postgrey_whitelist_clients.local
+```bash
+rogerdeng.net
+mail.rogerdeng.net
+```
+
+- 編輯 /etc/postfix/main.cf
+```bash
+smtpd_recipient_restrictions = check_policy_service unix:postgrey/socket
+```
+
+```bash
+systemctl enable postgrey
+systemctl restart postgrey
+```
