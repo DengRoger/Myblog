@@ -6,6 +6,7 @@ categories:
 tags:
     - DNS
     - bind9
+    - DNSSEC
 ---
 # bind9 DNS server
 <!-- more -->
