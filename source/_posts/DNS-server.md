@@ -8,6 +8,8 @@ tags:
     - bind9
     - DNSSEC
 ---
+
+
 # bind9 DNS server
 <!-- more -->
 
@@ -96,6 +98,22 @@ view "external-view" {
     };
 };
 ```
+
+
+### AppArmor 可能會擋掉對於 key 的存取
+> 警告：AppArmor 可能會擋掉對於 key 的存取!!
+- `sudo vim /etc/apparmor.d/usr.sbin.named`
+```
+add:
+    /etc/bind/keys/** rw,
+```
+- `sudo systemctl restart apparmor`
+
+### 注意權限設置
+- `sudo chown -R bind:bind /etc/bind/keys`
+- `sudo chmod -R 755 /etc/bind/keys`
+
+## 重新簽署
 - `rndc signing -list rogerdeng.net`
 - `sudo systemctl restart bind9`
 
