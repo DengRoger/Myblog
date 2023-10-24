@@ -35,6 +35,7 @@ comments: true
     - 1st place , 2023 Ming Chuan University Programming Contest
     - 1st place , 2022 Ming Chuan University Programming Contest
     - 1st place , 2021 Ming Chuan University Programming Contest
+    - 44st place, 2023 Icpc Asia Taoyuan Regional Contest (bronze Award)
 
 ## Links
 - [Github](https://github.com/DengRoger)
